@@ -4,6 +4,8 @@
 #include <math.h>
 #include <ctype.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
 #else
@@ -103,3 +105,5 @@ OsuSphere( float radius, int slices, int stacks )
 
 	glEnd( );
 }
+
+#pragma clang diagnostic pop

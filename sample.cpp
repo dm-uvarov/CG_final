@@ -221,6 +221,7 @@ GLuint	PlutoTex;
 bool    isLightingOn;             // is lighing in use?
 int     NowMode;
 bool    Frozen;
+int     NowPlanet;
 
 // function prototypes:
 
@@ -254,6 +255,33 @@ float			Dot(float [3], float [3]);
 float			Unit(float [3], float [3]);
 float			Unit(float [3]);
 
+
+// planet struct
+struct planet
+{
+    char*                   name;
+    char*                   file;
+    float                   scale;
+    int                     displayList;
+    char                    key;
+    unsigned int            texObject;
+};
+
+
+
+struct planet Planets[] =
+        {
+                { "Venus",      "venus.bmp",     0.95f, 0, 'v', 0 },
+                { "Earth",      "earth.bmp",     1.00f, 0, 'e', 0 },
+                { "Moon",       "moon.bmp",      0.27f, 0, 'm', 0 },
+                { "Jupiter",    "jupiter.bmp",  11.21f, 0, 'j', 0 },
+                { "Saturn",     "saturn.bmp",    9.45f, 0, 's', 0 },
+                { "Uranus",     "uranus.bmp",    4.01f, 0, 'u', 0 },
+                { "Neptune",    "neptune.bmp",   3.88f, 0, 'n', 0 },
+                { "Pluto",      "pluto.bmp",     0.19f, 0, 'p', 0 },
+        };
+
+const int NUMPLANETS = sizeof(Planets) / sizeof(struct planet);
 
 // utility to create an array from 3 separate values:
 
@@ -476,37 +504,48 @@ Display( )
 
 	// draw the box object by calling up its display list:
 
-	glCallList( BoxList );
-
-
-
-
-//`    if( << we-are-in-a-texture-mode >> )
-//    glEnable( GL_TEXTURE_2D );
-//    else
-//    glDisable( GL_TEXTURE_2D );
+	//glCallList( BoxList );
 //
-//    if( << we-are-in-a-lighting-mode >> )
-//    {
-//        glEnable( GL_LIGHTING );
-//        glEnable( GL_LIGHT0 );
-//        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-//    }
-//    else
-//    {
-//        glDisable( GL_LIGHTING );
-//        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-//    }
+//    switch (NowMode){
+//        case NOTEX:
 //
+//            break;
+//        case REPLACE:
+//            break;
+//
+//        case MODULATE:
+//            break;
+//    }
+
+
+    // << we-are-in-a-texture-mode >>
+   if(NowMode == REPLACE || NowMode == MODULATE )
+    glEnable( GL_TEXTURE_2D );
+    else
+    glDisable( GL_TEXTURE_2D );
+
+    // << we-are-in-a-lighting-mode >>
+    if(NowMode == NOTEX || NowMode == MODULATE )
+    {
+        glEnable( GL_LIGHTING );
+        glEnable( GL_LIGHT0 );
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    }
+    else
+    {
+        glDisable( GL_LIGHTING );
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    }
+
 //    if( << we-want-to-display-venus >> )
 //    {
-//        glBindTexture( GL_TEXTURE_2D, VenusTex );	// can do this here or in the VenusDL
-//        glCallList( VenusDL );
+        glBindTexture( GL_TEXTURE_2D, VenusTex );	// can do this here or in the VenusDL
+        glCallList( VenusDL );
 //    }
-//
-//
-//    glDisable( GL_TEXTURE_2D );
-//    glDisable( GL_LIGHTING );`
+
+
+    glDisable( GL_TEXTURE_2D );
+    glDisable( GL_LIGHTING );
 
 
 
