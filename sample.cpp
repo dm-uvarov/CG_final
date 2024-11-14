@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -107,6 +109,12 @@ enum ButtonVals
 	QUIT
 };
 
+enum Modes{
+    NOTEX,
+    REPLACE,
+    MODULATE
+};
+
 // window background color (rgba):
 
 const GLfloat BACKCOLOR[ ] = { 0., 0., 0., 1. };
@@ -210,8 +218,9 @@ GLuint	SaturnTex;
 GLuint	UranusTex;
 GLuint  NeptuneTex;
 GLuint	PlutoTex;
-bool    LightingOn;             // is lighing in use?
-
+bool    isLightingOn;             // is lighing in use?
+int     NowMode;
+bool    Frozen;
 
 // function prototypes:
 
@@ -364,6 +373,8 @@ Animate( )
 
 	glutSetWindow( MainWindow );
 	glutPostRedisplay( );
+
+
 }
 
 
@@ -466,6 +477,41 @@ Display( )
 	// draw the box object by calling up its display list:
 
 	glCallList( BoxList );
+
+
+
+
+//`    if( << we-are-in-a-texture-mode >> )
+//    glEnable( GL_TEXTURE_2D );
+//    else
+//    glDisable( GL_TEXTURE_2D );
+//
+//    if( << we-are-in-a-lighting-mode >> )
+//    {
+//        glEnable( GL_LIGHTING );
+//        glEnable( GL_LIGHT0 );
+//        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//    }
+//    else
+//    {
+//        glDisable( GL_LIGHTING );
+//        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+//    }
+//
+//    if( << we-want-to-display-venus >> )
+//    {
+//        glBindTexture( GL_TEXTURE_2D, VenusTex );	// can do this here or in the VenusDL
+//        glCallList( VenusDL );
+//    }
+//
+//
+//    glDisable( GL_TEXTURE_2D );
+//    glDisable( GL_LIGHTING );`
+
+
+
+
+
 
 #ifdef DEMO_Z_FIGHTING
 	if( DepthFightingOn != 0 )
@@ -964,6 +1010,26 @@ Keyboard( unsigned char c, int x, int y )
 			DoMainMenu( QUIT );	// will not return here
 			break;				// happy compiler
 
+        case 't':
+        case 'T':
+            switch (NowMode){
+                case NOTEX:
+                    NowMode = REPLACE;
+                    fprintf( stderr, "replace mode now '%i'  (0x%0x)\n",NowMode,NowMode);
+                    break;
+                case REPLACE:
+                    NowMode = MODULATE;
+                    fprintf( stderr, "modulate mode now '%i'  (0x%0x)\n",NowMode,NowMode);
+                    break;
+                case MODULATE:
+                    NowMode = NOTEX;
+                    fprintf( stderr, "no textures mode now '%i'  (0x%0x)\n",NowMode,NowMode);
+                    break;
+                default:
+                    fprintf( stderr, "there no such mode '%i'   (0x%0x)\n",NowMode,NowMode);
+
+            }
+            break;
 		default:
 			fprintf( stderr, "Don't know what to do with keyboard hit: '%c' (0x%0x)\n", c, c );
 	}
@@ -1087,6 +1153,9 @@ Reset( )
 	NowColor = YELLOW;
 	NowProjection = PERSP;
 	Xrot = Yrot = 0.;
+    Frozen = false;
+    NowMode = NOTEX;
+   // NowPlanet = EARTH;
 }
 
 
@@ -1355,3 +1424,5 @@ Unit( float v[3] )
 	}
 	return dist;
 }
+
+#pragma clang diagnostic pop
