@@ -56,6 +56,11 @@ const char *GLUITITLE   = "User Interface Window";
 const int GLUITRUE  = true;
 const int GLUIFALSE = false;
 
+
+
+const float LIGHTRADIUS = 15.f;
+const float FACTOR = 100.F;
+
 // the escape key:
 
 const int ESCAPE = 0x1b;
@@ -73,6 +78,9 @@ const float BOXSIZE = 2.f;
 
 const float ANGFACT = 1.f;
 const float SCLFACT = 0.005f;
+
+
+
 
 // minimum allowable scale factor:
 
@@ -222,6 +230,7 @@ bool    isLightingOn;             // is lighing in use?
 int     NowMode;
 bool    Frozen;
 int     NowPlanet;
+//float   xlight,ylight,zlight;
 
 // function prototypes:
 
@@ -426,7 +435,10 @@ Display( )
 	if( DepthBufferOn == 0 )
 		glDisable( GL_DEPTH_TEST );
 #endif
-
+    //float xlight =  sin(2.0f * Time *  F_2_PI ) * LIGHTRADIUS/2.f;
+    float xlight  =  LIGHTRADIUS * sin(Time *  F_2_PI);
+    float ylight = 0.5f;
+    float zlight = - LIGHTRADIUS * cos(Time *  F_2_PI);
 
 	// specify shading to be flat:
 
@@ -527,9 +539,18 @@ Display( )
     // << we-are-in-a-lighting-mode >>
     if(NowMode == NOTEX || NowMode == MODULATE )
     {
+        SetPointLight(GL_LIGHT0,xlight,ylight,zlight , 1.f, 1.f, 1.f );
+
         glEnable( GL_LIGHTING );
         glEnable( GL_LIGHT0 );
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+
+
+
+
+
+
     }
     else
     {
