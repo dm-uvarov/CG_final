@@ -528,7 +528,15 @@ Display( )
 //        case MODULATE:
 //            break;
 //    }
+    glPushMatrix();
+    glTranslatef(xlight,ylight,zlight);
+    glScalef(0.5f,0.5f,0.5f);
+    glColor3f(1.f,1.f,1.f);
+   // SetMaterial(1.f, 1.f,1.f,50.f);
+    //setMaterial(CurrentLight[0],CurrentLight[1],CurrentLight[2]);
+    glCallList( SphereDL);
 
+    glPopMatrix();
 
     // << we-are-in-a-texture-mode >>
    if(NowMode == REPLACE || NowMode == MODULATE )
@@ -1069,6 +1077,14 @@ Keyboard( unsigned char c, int x, int y )
 		case ESCAPE:
 			DoMainMenu( QUIT );	// will not return here
 			break;				// happy compiler
+        case 'f':
+        case 'F':
+            Frozen = ! Frozen;
+            if( Frozen )
+                glutIdleFunc( NULL );
+            else
+                glutIdleFunc( Animate );
+            break;
 
         case 't':
         case 'T':
