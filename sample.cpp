@@ -453,7 +453,7 @@ Display( )
 
 	// specify shading to be flat:
 
-	glShadeModel( GL_FLAT );
+	glShadeModel( GL_SMOOTH );
 
 	// set the viewport to be a square centered in the window:
 
@@ -561,7 +561,7 @@ Display( )
     if(NowMode == NOTEX || NowMode == MODULATE )
     {
         SetPointLight(GL_LIGHT0,xlight,ylight,zlight , 1.f, 1.f, 1.f );
-
+        glLightModelfv( GL_LIGHT_MODEL_AMBIENT,WHITE );
         glEnable( GL_LIGHTING );
         glEnable( GL_LIGHT0 );
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
