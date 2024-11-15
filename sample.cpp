@@ -483,7 +483,7 @@ Display( )
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt( 0.f, 0.f, 3.f,     0.f, 0.f, 0.f,     0.f, 1.f, 0.f );
+	gluLookAt( 18.f, 3.f, 18.f,     0.f, 0.f, 0.f,     0.f, 1.f, 0.f );
 
 	// rotate the scene:
 
@@ -987,8 +987,8 @@ InitGraphics( )
 
         fprintf(stderr, "Opened '%s': width = %d ; height = %d\n", Planets[i].file, width, height);
 
-        glGenTextures(1, &PlanetTextures[i]);
-        glBindTexture(GL_TEXTURE_2D, PlanetTextures[i]);
+        glGenTextures(1, &Planets[i].texObject);
+        glBindTexture(GL_TEXTURE_2D, Planets[i].texObject);
 
         // Set texture parameters
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1093,7 +1093,8 @@ InitLists( )
     for (int i = 0; i < NUMPLANETS; i++) {
         Planets[i].displayList  = glGenLists(1);
             glNewList(Planets[i].displayList, GL_COMPILE);
-            glBindTexture(GL_TEXTURE_2D, PlanetTextures[i]);
+//            glBindTexture(GL_TEXTURE_2D, PlanetTextures[i]);
+        glBindTexture(GL_TEXTURE_2D,Planets[i].texObject);
         glPushMatrix();
         glScalef(Planets[i].scale, Planets[i].scale, Planets[i].scale);
         glCallList(SphereDL);
