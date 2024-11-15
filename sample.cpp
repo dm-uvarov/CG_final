@@ -145,6 +145,17 @@ enum Colors
 	MAGENTA
 };
 
+enum Planets_E{
+   VENUS,
+   EARTH,
+   MOON,
+   JUPITER,
+   SATURN,
+   URANUS,
+   NEPTUNE,
+   PLUTO,
+};
+
 char * ColorNames[ ] =
 {
 	(char *)"Red",
@@ -291,7 +302,7 @@ struct planet Planets[] =
         };
 
 const int NUMPLANETS = sizeof(Planets) / sizeof(struct planet);
-
+GLuint PlanetTextures[NUMPLANETS];
 // utility to create an array from 3 separate values:
 
 float *
@@ -511,6 +522,8 @@ Display( )
 
 	// since we are using glScalef( ), be sure the normals get unitized:
 
+
+
 	glEnable( GL_NORMALIZE );
 
 
@@ -540,9 +553,9 @@ Display( )
 
     // << we-are-in-a-texture-mode >>
    if(NowMode == REPLACE || NowMode == MODULATE )
-    glEnable( GL_TEXTURE_2D );
-    else
-    glDisable( GL_TEXTURE_2D );
+        glEnable( GL_TEXTURE_2D );
+   else
+        glDisable( GL_TEXTURE_2D );
 
     // << we-are-in-a-lighting-mode >>
     if(NowMode == NOTEX || NowMode == MODULATE )
@@ -552,12 +565,6 @@ Display( )
         glEnable( GL_LIGHTING );
         glEnable( GL_LIGHT0 );
         glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-
-
-
-
-
 
     }
     else
@@ -569,7 +576,7 @@ Display( )
 //    if( << we-want-to-display-venus >> )
 //    {
         glBindTexture( GL_TEXTURE_2D, VenusTex );	// can do this here or in the VenusDL
-        glCallList( VenusDL );
+        glCallList( Planets[NowPlanet].displayList  );
 //    }
 
 
@@ -938,6 +945,7 @@ InitGraphics( )
 
 	// all other setups go here, such as GLSLProgram and KeyTime setups:
     // at the end of InitGraphics( ):
+    /*
     int width, height;
     char *file = (char *)"venus.bmp";
     unsigned char *texture = BmpToTexture( file, &width, &height );
@@ -954,6 +962,46 @@ InitGraphics( )
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexImage2D( GL_TEXTURE_2D, 0, 3, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture );
+    */
+    int width, height;
+
+//    unsigned char *texture;
+//    for (int i = 0; i< NUMPLANETS; i++){
+//        char *file = Planets[i].file;
+//        *texture = *BmpToTexture( file, &width, &height );
+//        if( texture == NULL )
+//            fprintf( stderr, "Cannot open texture '%s'\n", file );
+//        else
+//            fprintf( stderr, "Opened '%s': width = %d ; height = %d\n", file, width, height );
+//
+//
+//    }
+
+    for (int i = 0; i < NUMPLANETS; i++) {
+        unsigned char *texture = BmpToTexture(Planets[i].file, &width, &height);
+
+        if (texture == NULL) {
+            fprintf(stderr, "Cannot open texture '%s'\n", Planets[i].file);
+            continue;
+        }
+
+        fprintf(stderr, "Opened '%s': width = %d ; height = %d\n", Planets[i].file, width, height);
+
+        glGenTextures(1, &PlanetTextures[i]);
+        glBindTexture(GL_TEXTURE_2D, PlanetTextures[i]);
+
+        // Set texture parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        // Upload texture data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture);
+
+        // Free the texture data
+        free(texture);
+    }
 
 }
 
@@ -1032,7 +1080,7 @@ InitLists( )
     glNewList( SphereDL, GL_COMPILE );
     OsuSphere( 1., 200, 200 );
     glEndList( );
-
+    /*
     VenusDL = glGenLists( 1 );
     glNewList( VenusDL, GL_COMPILE );
     glBindTexture( GL_TEXTURE_2D, VenusTex );	// VenusTex must have already been created when this is called
@@ -1041,6 +1089,28 @@ InitLists( )
     glCallList( SphereDL );			// a dl can call another dl that has been previously created
     glPopMatrix( );
     glEndList( );
+    */
+    for (int i = 0; i < NUMPLANETS; i++) {
+        Planets[i].displayList  = glGenLists(1);
+            glNewList(Planets[i].displayList, GL_COMPILE);
+            glBindTexture(GL_TEXTURE_2D, PlanetTextures[i]);
+        glPushMatrix();
+        glScalef(Planets[i].scale, Planets[i].scale, Planets[i].scale);
+        glCallList(SphereDL);
+        glPopMatrix();
+        glEndList();
+    }
+
+
+
+
+
+
+
+
+
+
+
 	// create the axes:
 
 	AxesList = glGenLists( 1 );
@@ -1062,13 +1132,47 @@ Keyboard( unsigned char c, int x, int y )
 
 	switch( c )
 	{
-		case 'o':
+
+        case 'v':
+        case 'V':
+            NowPlanet = VENUS;
+            break;
+        case 'e':
+        case 'E':
+            NowPlanet = EARTH;
+            break;
+        case 'm':
+        case 'M':
+            NowPlanet = MOON;
+            break;
+        case 'j':
+        case 'J':
+            NowPlanet = JUPITER;
+            break;
+        case 's':
+        case 'S':
+            NowPlanet = SATURN;
+            break;
+        case 'u':
+        case 'U':
+            NowPlanet = URANUS;
+            break;
+        case 'n':
+        case 'N':
+            NowPlanet =NEPTUNE;
+            break;
+        case 'p':
+        case 'P':
+            NowPlanet =PLUTO;
+            break;
+
+        case 'o':
 		case 'O':
 			NowProjection = ORTHO;
 			break;
 
-		case 'p':
-		case 'P':
+		case 'a':
+		case 'A':
 			NowProjection = PERSP;
 			break;
 
@@ -1231,7 +1335,7 @@ Reset( )
 	Xrot = Yrot = 0.;
     Frozen = false;
     NowMode = NOTEX;
-   // NowPlanet = EARTH;
+    NowPlanet = EARTH;
 }
 
 
