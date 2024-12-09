@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #define _USE_MATH_DEFINES
@@ -154,7 +155,10 @@ enum Planets_E{
    URANUS,
    NEPTUNE,
    PLUTO,
+   MILKY_WAY
 };
+
+
 
 char * ColorNames[ ] =
 {
@@ -223,12 +227,15 @@ int		Xmouse, Ymouse;			// mouse values
 float	Xrot, Yrot;				// rotation angles in degrees
 GLuint	SphereDL, VenusDL;	    // display lists
 GLuint  EarthDL,
-        MoonDL,
+        MercuryDL,
         JupiterDL,
         SaturnDL,
         UranusDL,
         NeptuneDL,
-        PlutoDL;
+        PlutoDL,
+        MilkyWayDL,
+        SunDL;
+
 GLuint  VenusTex;
 GLuint	EarthTex;		        // texture objects
 GLuint	MoonTex;
@@ -237,6 +244,8 @@ GLuint	SaturnTex;
 GLuint	UranusTex;
 GLuint  NeptuneTex;
 GLuint	PlutoTex;
+GLuint  MilkyWayTex;
+GLuint  SunTex;
 bool    isLightingOn;             // is lighing in use?
 int     NowMode;
 bool    Frozen;
@@ -277,6 +286,7 @@ float			Unit(float [3]);
 
 
 // planet struct
+// orvital radiuses and year period was scaled regarding  mercury
 struct planet
 {
     char*                   name;
@@ -285,21 +295,34 @@ struct planet
     int                     displayList;
     char                    key;
     unsigned int            texObject;
+    float                   orbitalRadiusScaled;
+    float                   yearPeriodScaled;
+
 };
 
 
 
 struct planet Planets[] =
         {
-                { "Venus",      "venus.bmp",     0.95f, 0, 'v', 0 },
-                { "Earth",      "earth.bmp",     1.00f, 0, 'e', 0 },
-                { "Moon",       "moon.bmp",      0.27f, 0, 'm', 0 },
-                { "Jupiter",    "jupiter.bmp",  11.21f, 0, 'j', 0 },
-                { "Saturn",     "saturn.bmp",    9.45f, 0, 's', 0 },
-                { "Uranus",     "uranus.bmp",    4.01f, 0, 'u', 0 },
-                { "Neptune",    "neptune.bmp",   3.88f, 0, 'n', 0 },
-                { "Pluto",      "pluto.bmp",     0.19f, 0, 'p', 0 },
+        { "Sun",    "sun.bmp",    109.f, 0, '1', 0,0.f,0.f },
+        { "Mercury","mercury.bmp",0.38f, 0, '2', 0,1.f,1.f },
+        { "Venus",  "venus.bmp",  0.95f, 0, 'v', 0, 1.87f,	2.55f},
+        { "Earth",  "earth.bmp",  1.00f, 0, 'e', 0, 2.58f,	4.15f },
+        { "Mars",   "mars.bmp",   0.53f, 0, 'm', 0, 3.94f,	7.81f },
+        { "Jupiter","jupiter.bmp",11.21f, 0, 'j', 0, 13.44f,	49.23f},
+        { "Saturn", "saturn.bmp", 9.45f, 0, 's', 0, 24.68f,	122.26f },
+        { "Uranus", "uranus.bmp", 4.01f, 0, 'u', 0, 49.68f,	348.70f },
+        { "Neptune","neptune.bmp",3.88f, 0, 'n', 0, 78.57f,	683.50f },
+        { "Pluto",  "pluto.bmp",  0.19f, 0, 'p', 0, 102.00f,	1029.01f },
+//                {"MilkyWay",    "milkyway.bmp", 20.f,   0,  'z',0}
         };
+
+
+
+
+
+
+
 
 const int NUMPLANETS = sizeof(Planets) / sizeof(struct planet);
 GLuint PlanetTextures[NUMPLANETS];
@@ -446,7 +469,7 @@ Display( )
 	if( DepthBufferOn == 0 )
 		glDisable( GL_DEPTH_TEST );
 #endif
-    //float xlight =  sin(2.0f * Time *  F_2_PI ) * LIGHTRADIUS/2.f;
+    //float xlight =  (2.0fsin * Time *  F_2_PI ) * LIGHTRADIUS/2.f;
     float xlight  =  LIGHTRADIUS * sin(Time *  F_2_PI);
     float ylight = 0.5f;
     float zlight = - LIGHTRADIUS * cos(Time *  F_2_PI);
@@ -1166,6 +1189,10 @@ Keyboard( unsigned char c, int x, int y )
         case 'P':
             NowPlanet =PLUTO;
             break;
+//        case 'z':
+//        case 'Z':
+//            NowPlanet =MILKY_WAY;
+//            break;
 
         case 'o':
 		case 'O':
@@ -1182,6 +1209,7 @@ Keyboard( unsigned char c, int x, int y )
 		case ESCAPE:
 			DoMainMenu( QUIT );	// will not return here
 			break;				// happy compiler
+
         case 'f':
         case 'F':
             Frozen = ! Frozen;
