@@ -234,7 +234,8 @@ GLuint  EarthDL,
         NeptuneDL,
         PlutoDL,
         MilkyWayDL,
-        SunDL;
+        SunDL,
+        OrbitListDL;
 
 GLuint  VenusTex;
 GLuint	EarthTex;		        // texture objects
@@ -297,6 +298,7 @@ struct planet
     unsigned int            texObject;
     float                   orbitalRadiusScaled;
     float                   yearPeriodScaled;
+    int                     displayListOrbit;
 
 };
 
@@ -304,17 +306,20 @@ struct planet
 
 struct planet Planets[] =
         {
-        { "Sun",    "sun.bmp",    109.f, 0, '1', 0,0.f,0.f },
-        { "Mercury","mercury.bmp",0.38f, 0, '2', 0,1.f,1.f },
-        { "Venus",  "venus.bmp",  0.95f, 0, 'v', 0, 1.87f,	2.55f},
-        { "Earth",  "earth.bmp",  1.00f, 0, 'e', 0, 2.58f,	4.15f },
-        { "Mars",   "mars.bmp",   0.53f, 0, 'm', 0, 3.94f,	7.81f },
-        { "Jupiter","jupiter.bmp",11.21f, 0, 'j', 0, 13.44f,	49.23f},
-        { "Saturn", "saturn.bmp", 9.45f, 0, 's', 0, 24.68f,	122.26f },
-        { "Uranus", "uranus.bmp", 4.01f, 0, 'u', 0, 49.68f,	348.70f },
-        { "Neptune","neptune.bmp",3.88f, 0, 'n', 0, 78.57f,	683.50f },
-        { "Pluto",  "pluto.bmp",  0.19f, 0, 'p', 0, 102.00f,	1029.01f },
-//                {"MilkyWay",    "milkyway.bmp", 20.f,   0,  'z',0}
+        { "Sun",    "sun.bmp",    109.f, 0, '1', 0,0.f,0.f,0 },
+        { "Mercury","mercury.bmp",0.38f, 0, '2', 0,1.f, 0.00980f,0 },
+        { "Venus",  "venus.bmp",  0.95f, 0, 'v', 0, 1.87f,	0.01832f,0},
+        { "Earth",  "earth.bmp",  1.00f, 0, 'e', 0, 2.58f,	 0.02533f,0 },
+        { "Mars",   "mars.bmp",   0.53f, 0, 'm', 0, 3.94f,	 0.03860f,0 },
+        { "Jupiter","jupiter.bmp",11.21f, 0, 'j', 0, 13.44f,      0.13181f,0},
+        { "Saturn", "saturn.bmp", 9.45f, 0, 's', 0, 24.68f,	 0.24201f,0 },
+        { "Uranus", "uranus.bmp", 4.01f, 0, 'u', 0, 49.68f,	 0.48704f,0 },
+        { "Neptune","neptune.bmp",3.88f, 0, 'n', 0, 78.57f,	 0.77034f,0 },
+        { "Pluto",  "pluto.bmp",  0.19f, 0, 'p', 0, 102.00f,	1.f,0 },
+        { "MilkyWay",  "milkyway.bmp",  3000.f, 0, 'p', 0, 0.00f,	0.0f,0 },
+//                {"MilkyWay",    "", 20.f,   0,  'z',0}
+
+
         };
 
 
@@ -374,7 +379,7 @@ MulArray3(float factor, float a, float b, float c )
 #include "setlight.cpp"
 #include "osusphere.cpp"
 //#include "osucone.cpp"
-//#include "osutorus.cpp"
+#include "osutorus.cpp"
 #include "bmptotexture.cpp"
 //#include "loadobjfile.cpp"
 //#include "keytime.cpp"
@@ -495,9 +500,9 @@ Display( )
 	glMatrixMode( GL_PROJECTION );
 	glLoadIdentity( );
 	if( NowProjection == ORTHO )
-		glOrtho( -2.f, 2.f,     -2.f, 2.f,     0.1f, 1000.f );
+		glOrtho( -150.f, 150.f,     -150.f, 150.f,     0.1f, 10000.f );
 	else
-		gluPerspective( 70.f, 1.f,	0.1f, 1000.f );
+		gluPerspective( 70.f, 1.f,	0.1f, 10000.f );
 
 	// place the objects into the scene:
 
@@ -506,13 +511,13 @@ Display( )
 
 	// set the eye position, look-at position, and up-vector:
 
-	gluLookAt( 18.f, 3.f, 18.f,     0.f, 0.f, 0.f,     0.f, 1.f, 0.f );
+	gluLookAt( -100.f, 25.f, 100.f,     0.f, 0.f, 0.f,     0.f, 1.f, 0.f );
 
 	// rotate the scene:
 
 	glRotatef( (GLfloat)Yrot, 0.f, 1.f, 0.f );
 	glRotatef( (GLfloat)Xrot, 1.f, 0.f, 0.f );
-
+   // glRotatef( (GLfloat)Zrot, 0.f, 0.f, 2.f );
 	// uniformly scale the scene:
 
 	if( Scale < MINSCALE )
@@ -564,47 +569,99 @@ Display( )
 //        case MODULATE:
 //            break;
 //    }
-    glPushMatrix();
-    glTranslatef(xlight,ylight,zlight);
-    glScalef(0.5f,0.5f,0.5f);
-    glColor3f(1.f,1.f,1.f);
-   // SetMaterial(1.f, 1.f,1.f,50.f);
-    //setMaterial(CurrentLight[0],CurrentLight[1],CurrentLight[2]);
-    glCallList( SphereDL);
-
-    glPopMatrix();
-
-    // << we-are-in-a-texture-mode >>
-   if(NowMode == REPLACE || NowMode == MODULATE )
-        glEnable( GL_TEXTURE_2D );
-   else
-        glDisable( GL_TEXTURE_2D );
-
-    // << we-are-in-a-lighting-mode >>
-    if(NowMode == NOTEX || NowMode == MODULATE )
-    {
-        SetPointLight(GL_LIGHT0,xlight,ylight,zlight , 1.f, 1.f, 1.f );
-        glLightModelfv( GL_LIGHT_MODEL_AMBIENT,WHITE );
-        glEnable( GL_LIGHTING );
-        glEnable( GL_LIGHT0 );
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-    }
-    else
-    {
-        glDisable( GL_LIGHTING );
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    }
-
-//    if( << we-want-to-display-venus >> )
+//    glPushMatrix();
+//    glTranslatef(xlight,ylight,zlight);
+//    glScalef(0.5f,0.5f,0.5f);
+//    glColor3f(1.f,1.f,1.f);
+//   // SetMaterial(1.f, 1.f,1.f,50.f);
+//    //setMaterial(CurrentLight[0],CurrentLight[1],CurrentLight[2]);
+//    glCallList( SphereDL);
+//
+//    glPopMatrix();
+//
+//
+//
+//    // << we-are-in-a-texture-mode >>
+//   if(NowMode == REPLACE || NowMode == MODULATE )
+//        glEnable( GL_TEXTURE_2D );
+//   else
+//        glDisable( GL_TEXTURE_2D );
+//
+//    // << we-are-in-a-lighting-mode >>
+//    if(NowMode == NOTEX || NowMode == MODULATE )
 //    {
-        glBindTexture( GL_TEXTURE_2D, VenusTex );	// can do this here or in the VenusDL
-        glCallList( Planets[NowPlanet].displayList  );
+//        SetPointLight(GL_LIGHT0,xlight,ylight,zlight , 1.f, 1.f, 1.f );
+//        glLightModelfv( GL_LIGHT_MODEL_AMBIENT,WHITE );
+//        glEnable( GL_LIGHTING );
+//        glEnable( GL_LIGHT0 );
+//        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+//
 //    }
+//    else
+//    {
+//        glDisable( GL_LIGHTING );
+//        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+//    }
+//
+////    if( << we-want-to-display-venus >> )
+////    {
+//        glBindTexture( GL_TEXTURE_2D, VenusTex );	// can do this here or in the VenusDL
+//        glCallList( Planets[NowPlanet].displayList  );
+////    }
+//    glPushMatrix();
+//        glColor3f(1.f,1.f,1.f);
+//         SetMaterial(1.f, 1.f,1.f,50.f);
+////    //setMaterial(CurrentLight[0],CurrentLight[1],CurrentLight[2]);
+//    glCallList(Planets[1].displayListOrbit);
+//    glPopMatrix();
 
+    glEnable( GL_TEXTURE_2D );
+    // source of lighting
+    SetPointLight(GL_LIGHT0,0.f,0.f,0.f , 1.f, 1.f, 1.f );
+    glLightModelfv( GL_LIGHT_MODEL_AMBIENT,WHITE );
+
+    glEnable( GL_LIGHTING );
+    glEnable( GL_LIGHT0 );
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+
+
+    float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+    float radius,period,time;
+    const float periodAdjaster = 0.01f;
+
+    for (int i = 1; i < NUMPLANETS-1; i++) {
+        glPushMatrix();
+
+        // glColor3f(1.f,1.f,1.f);
+        // SetMaterial(1.f, 1.f,1.f,50.f);
+        //setMaterial(CurrentLight[0],CurrentLight[1],CurrentLight[2]);
+        radius = 20 + 6.f *Planets[i].orbitalRadiusScaled;
+        period =Planets[i].yearPeriodScaled;
+//        time = Time*periodAdjaster;
+
+        time = currentTime*periodAdjaster;
+        glTranslatef( radius*cos( time* F_2_PI/period),  0.f,radius*sin(time*F_2_PI/period)  );
+        glCallList(Planets[i].displayList);
+
+        glPopMatrix();
+    }
+
+    glDisable( GL_LIGHTING );
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    // show Sun AND MILKY WAY
+
+
+    glCallList( Planets[10].displayList  );
+    glPushMatrix();
+    glScalef(0.2f, 0.2f, 0.2f);
+    glCallList( Planets[0].displayList  );
+    glPopMatrix();
 
     glDisable( GL_TEXTURE_2D );
     glDisable( GL_LIGHTING );
+
+
 
 
 
@@ -1097,12 +1154,35 @@ InitLists( )
 //		glEnd( );
 //
 //	glEndList( );
+//    OrbitDl = glGenLists(1);
+//    glNewList();
+//        glColor3f(1.f,1.f,1.f);
+//        glLineWidth( AXES_WIDTH );
+//        glBegin(GL_LINE_LOOP)
+//
+//        glEnd();
+//    glEndlist();
 
     // in InitLists( ):
     SphereDL = glGenLists( 1 );
     glNewList( SphereDL, GL_COMPILE );
     OsuSphere( 1., 200, 200 );
     glEndList( );
+
+
+
+
+
+//    for (int i = 1; i < NUMPLANETS-1; i++) {
+//        glNewList( Planets[i].displayListOrbit, GL_COMPILE );
+//        glPushMatrix();
+//        glColor3f( 1., 0., 0. );
+//        OsuTorus( 20 + 6.f *Planets[i].orbitalRadiusScaled - 3,20 + 6.f *Planets[i].orbitalRadiusScaled + 3,100,20 );
+//        glPopMatrix();
+//        glEndList( );
+//    }
+
+
     /*
     VenusDL = glGenLists( 1 );
     glNewList( VenusDL, GL_COMPILE );
@@ -1113,12 +1193,18 @@ InitLists( )
     glPopMatrix( );
     glEndList( );
     */
+
+
     for (int i = 0; i < NUMPLANETS; i++) {
         Planets[i].displayList  = glGenLists(1);
             glNewList(Planets[i].displayList, GL_COMPILE);
 //            glBindTexture(GL_TEXTURE_2D, PlanetTextures[i]);
         glBindTexture(GL_TEXTURE_2D,Planets[i].texObject);
         glPushMatrix();
+        if (i>0 && i < NUMPLANETS-1){
+
+            glScalef(2.f, 2.f, 2.f);
+        }
         glScalef(Planets[i].scale, Planets[i].scale, Planets[i].scale);
         glCallList(SphereDL);
         glPopMatrix();
@@ -1135,12 +1221,13 @@ InitLists( )
 
 
 
+
 	// create the axes:
 
 	AxesList = glGenLists( 1 );
 	glNewList( AxesList, GL_COMPILE );
 		glLineWidth( AXES_WIDTH );
-			Axes( 1.5 );
+			Axes( 1500. );
 		glLineWidth( 1. );
 	glEndList( );
 }
@@ -1187,7 +1274,7 @@ Keyboard( unsigned char c, int x, int y )
             break;
         case 'p':
         case 'P':
-            NowPlanet =PLUTO;
+            NowProjection = PERSP;
             break;
 //        case 'z':
 //        case 'Z':
