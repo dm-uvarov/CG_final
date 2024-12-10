@@ -235,6 +235,7 @@ GLuint  EarthDL,
         PlutoDL,
         MilkyWayDL,
         SunDL,
+        OrbitDl,
         OrbitListDL;
 
 GLuint  VenusTex;
@@ -558,6 +559,11 @@ Display( )
 	// draw the box object by calling up its display list:
 
 	//glCallList( BoxList );
+
+    for(int i= 1; i< NUMPLANETS-1; i++){
+        glCallList(Planets[i].displayListOrbit);
+    }
+//    glCallList(OrbitDl);
 //
 //    switch (NowMode){
 //        case NOTEX:
@@ -1154,14 +1160,22 @@ InitLists( )
 //		glEnd( );
 //
 //	glEndList( );
+    float dang,ang,radius;
 //    OrbitDl = glGenLists(1);
-//    glNewList();
+//    glNewList(OrbitDl,GL_COMPILE);
 //        glColor3f(1.f,1.f,1.f);
 //        glLineWidth( AXES_WIDTH );
-//        glBegin(GL_LINE_LOOP)
+//        dang = F_2_PI/(float)(300 - 1);
+//        ang = 0.f;
+//        radius = 20 + 6.f *Planets[5].orbitalRadiusScaled;
+//        glBegin(GL_LINE_LOOP);
+//            for(int i = 0; i < 300; i++){
+//                glVertex3f( radius*cos(ang),0,radius*sin(ang));
+//                ang+=dang;
+//            }
 //
 //        glEnd();
-//    glEndlist();
+//    glEndList();
 
     // in InitLists( ):
     SphereDL = glGenLists( 1 );
@@ -1173,14 +1187,25 @@ InitLists( )
 
 
 
-//    for (int i = 1; i < NUMPLANETS-1; i++) {
-//        glNewList( Planets[i].displayListOrbit, GL_COMPILE );
-//        glPushMatrix();
-//        glColor3f( 1., 0., 0. );
-//        OsuTorus( 20 + 6.f *Planets[i].orbitalRadiusScaled - 3,20 + 6.f *Planets[i].orbitalRadiusScaled + 3,100,20 );
-//        glPopMatrix();
-//        glEndList( );
-//    }
+    for (int i = 1; i < NUMPLANETS-1; i++) {
+        Planets[i].displayListOrbit = glGenLists(1);
+        glNewList( Planets[i].displayListOrbit, GL_COMPILE );
+        glPushMatrix();
+            glColor3f(0.6f,0.3f,0.3f);
+            glLineWidth( 1.5f );
+            dang = F_2_PI/(float)(300 - 1);
+            ang = 0.f;
+            radius = 20 + 6.f *Planets[i].orbitalRadiusScaled;
+            glBegin(GL_LINE_LOOP);
+            for(int i = 0; i < 300; i++){
+            glVertex3f( radius*cos(ang),0,radius*sin(ang));
+            ang+=dang;
+        }
+        glLineWidth( 1.f );
+        glEnd();
+        glPopMatrix();
+        glEndList( );
+    }
 
 
     /*
