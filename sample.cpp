@@ -45,7 +45,9 @@
 //		6. The transformations to be reset
 //		7. The program to quit
 //
-//	Author:			Joe Graphics
+//	Author:			Dmitry Uvarov
+// Final project based on sample program changed to display 
+// solar system with all planets
 
 // title of these windows:
 
@@ -56,8 +58,6 @@ const char *GLUITITLE   = "User Interface Window";
 
 const int GLUITRUE  = true;
 const int GLUIFALSE = false;
-
-
 
 const float LIGHTRADIUS = 15.f;
 const float FACTOR = 100.F;
